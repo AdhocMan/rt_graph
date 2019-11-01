@@ -1,6 +1,7 @@
 # RTGraph - Runtime Graph library for C++11
 
 RTGraph targets C++11 and above. It only relies on the C++ standard library and provides accurate runtime measurements, which are grouped by their identifier string and position in the call graph.
+Multiple statistic properties can be selected for a summary output and the entire graph can be exported to json.
 
 
 ## Example

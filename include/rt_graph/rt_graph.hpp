@@ -87,7 +87,7 @@ public:
   TimingResult(std::list<internal::TimingNode> rootNodes, std::string warnings)
       : rootNodes_(std::move(rootNodes)), warnings_(std::move(warnings)) {}
 
-  // Get json representation of the full graph with all timings
+  // Get json representation of the full graph with all timings. Unit of time is seconds.
   auto json() const -> std::string;
 
   // Get all timings for given identifier
