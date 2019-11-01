@@ -29,12 +29,10 @@
 #ifndef RT_GRAPH_HPP_GUARD
 #define RT_GRAPH_HPP_GUARD
 
-#include <array>
 #include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <deque>
-#include <functional>
 #include <list>
 #include <string>
 #include <vector>
