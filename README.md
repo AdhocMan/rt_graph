@@ -1,7 +1,15 @@
 # RTGraph - Runtime Graph library for C++11
 
 RTGraph targets C++11 and above. It only relies on the C++ standard library and provides accurate runtime measurements, which are grouped by their identifier string and position in the call graph.
-Multiple statistic properties can be selected for a summary output and the entire graph can be exported to json.
+
+## Features
+- Very small overhead
+  - Storage for measurements is pre-allocated. Default is for 1000'000 measurements.
+  - At each start / stop, only a pointer to a string literal and the current time is written to memory.
+  - Dynamic strings as identifiers are supported, but have to be moved / copied.
+  - Entire graph construction as done in separate processing call.
+- Print of summary can be customized with a selection of statistical properties.
+- JSON export of all measurements and entire graph.
 
 
 ## Example
