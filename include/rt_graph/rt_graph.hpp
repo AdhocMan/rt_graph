@@ -120,7 +120,7 @@ public:
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
   }
 
-  // start with string identifier (storing string object comes with some additional overheadd)
+  // start with string identifier (storing string object comes with some additional overhead)
   inline auto start(std::string identifier) -> void {
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
     identifierStrings_.emplace_back(std::move(identifier));
@@ -136,7 +136,7 @@ public:
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
   }
 
-  // stop with string identifier (storing string object comes with some additional overheadd)
+  // stop with string identifier (storing string object comes with some additional overhead)
   inline auto stop(std::string identifier) -> void {
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
     identifierStrings_.emplace_back(std::move(identifier));
@@ -144,13 +144,14 @@ public:
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
   }
 
-  // reset timer
-  inline auto clear() -> void {
+  // clear timer and reserve space for given number of new measurements.
+  inline auto clear(std::size_t reserveCount) -> void {
     timeStamps_.clear();
     identifierStrings_.clear();
+    this->reserve(reserveCount);
   }
 
-  // reserve space for gien number of measurements. Can prevent allocations at start / stop calls.
+  // reserve space for given number of measurements. Can prevent allocations at start / stop calls.
   inline auto reserve(std::size_t reserveCount) -> void { timeStamps_.reserve(reserveCount); }
 
   // process timings into result type
