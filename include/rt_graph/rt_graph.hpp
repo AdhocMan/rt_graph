@@ -57,8 +57,8 @@ enum class Stat {
   ParentPercentage  // Percentage of accumulated time with respect to the parent node in graph
 };
 
-// Internal helper functionality
-namespace Internal {
+// internal helper functionality
+namespace internal {
 
 enum class TimeStampType { Start, Stop, Empty };
 
@@ -79,34 +79,31 @@ struct TimingNode {
   std::vector<double> timings;
   std::list<TimingNode> subNodes;
 };
-}  // namespace Internal
-
+}  // namespace internal
 
 // Processed timings results.
 class TimingResult {
 public:
-  TimingResult(std::list<Internal::TimingNode> rootNodes) : rootNodes_(std::move(rootNodes)) {}
-  TimingResult(std::list<Internal::TimingNode> rootNodes, std::string warnings)
+  TimingResult(std::list<internal::TimingNode> rootNodes, std::string warnings)
       : rootNodes_(std::move(rootNodes)), warnings_(std::move(warnings)) {}
 
+  // Get json representation of the full graph with all timings
   auto json() const -> std::string;
 
-  // friend auto operator<<(std::ostream& out, const TimingResult& result) -> std::ostream&;
-
+  // Get all timings for given identifier
   auto get_timings(const std::string& identifier) const -> std::vector<double>;
 
+  // Print graph statistic to string.
   auto print(std::vector<Stat> statistic = {Stat::Count, Stat::Total, Stat::Percentage,
                                             Stat::ParentPercentage, Stat::Median, Stat::Min,
                                             Stat::Max}) const -> std::string;
 
 private:
-  std::list<Internal::TimingNode> rootNodes_;
+  std::list<internal::TimingNode> rootNodes_;
   std::string warnings_;
 };
 
-
 class ScopedTiming;
-
 
 // Timer class, which allows to start / stop measurements with a given identifier.
 class Timer {
@@ -121,7 +118,7 @@ public:
   template <std::size_t N>
   inline auto start(const char (&identifierPtr)[N]) -> void {
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
-    timeStamps_.emplace_back(identifierPtr, Internal::TimeStampType::Start);
+    timeStamps_.emplace_back(identifierPtr, internal::TimeStampType::Start);
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
   }
 
@@ -129,7 +126,7 @@ public:
   inline auto start(std::string identifier) -> void {
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
     identifierStrings_.emplace_back(std::move(identifier));
-    timeStamps_.emplace_back(identifierStrings_.back().c_str(), Internal::TimeStampType::Start);
+    timeStamps_.emplace_back(identifierStrings_.back().c_str(), internal::TimeStampType::Start);
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
   }
 
@@ -137,7 +134,7 @@ public:
   template <std::size_t N>
   inline auto stop(const char (&identifierPtr)[N]) -> void {
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
-    timeStamps_.emplace_back(identifierPtr, Internal::TimeStampType::Stop);
+    timeStamps_.emplace_back(identifierPtr, internal::TimeStampType::Stop);
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
   }
 
@@ -145,7 +142,7 @@ public:
   inline auto stop(std::string identifier) -> void {
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
     identifierStrings_.emplace_back(std::move(identifier));
-    timeStamps_.emplace_back(identifierStrings_.back().c_str(), Internal::TimeStampType::Stop);
+    timeStamps_.emplace_back(identifierStrings_.back().c_str(), internal::TimeStampType::Stop);
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
   }
 
@@ -164,13 +161,13 @@ public:
 private:
   inline auto stop_with_ptr(const char* identifierPtr) -> void {
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
-    timeStamps_.emplace_back(identifierPtr, Internal::TimeStampType::Stop);
+    timeStamps_.emplace_back(identifierPtr, internal::TimeStampType::Stop);
     atomic_signal_fence(std::memory_order_seq_cst);  // only prevents compiler reordering
   }
 
   friend ScopedTiming;
 
-  std::vector<Internal::TimeStamp> timeStamps_;
+  std::vector<internal::TimeStamp> timeStamps_;
   std::deque<std::string>
       identifierStrings_;  // pointer to elements always remain valid after push back
 };

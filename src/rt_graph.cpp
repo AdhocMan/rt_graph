@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "rt_graph.hpp"
+#include "rt_graph/rt_graph.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
@@ -40,9 +40,9 @@
 namespace rt_graph {
 
 // ======================
-// Internal helper
+// internal helper
 // ======================
-namespace Internal {
+namespace internal {
 namespace {
 
 struct Format {
@@ -231,7 +231,7 @@ struct TimeStampPair {
   double time = 0.0;
   std::size_t startIdx = 0;
   std::size_t stopIdx = 0;
-  Internal::TimingNode* nodePtr = nullptr;
+  internal::TimingNode* nodePtr = nullptr;
 };
 
 auto calculate_statistic(std::vector<double> values)
@@ -254,9 +254,9 @@ auto calculate_statistic(std::vector<double> values)
 }
 
 // print rt_graph nodes in tree recursively
-auto print_node(std::ostream& out, const std::vector<Internal::Format> formats,
+auto print_node(std::ostream& out, const std::vector<internal::Format> formats,
                 const std::size_t identifierSpace, const std::string& nodePrefix,
-                const Internal::TimingNode& node, const bool isSubNode, const bool isLastSubnode,
+                const internal::TimingNode& node, const bool isSubNode, const bool isLastSubnode,
                 double parentTime, double totalTime) -> void {
   double sum, mean, median, min, max, lowerQuartile, upperQuartile;
   std::tie(sum, mean, median, min, max, lowerQuartile, upperQuartile) =
@@ -304,7 +304,7 @@ auto print_node(std::ostream& out, const std::vector<Internal::Format> formats,
 }
 
 // determine length of padding required for printing entire tree identifiers recursively
-auto max_node_identifier_length(const Internal::TimingNode& node, const std::size_t recursionDepth,
+auto max_node_identifier_length(const internal::TimingNode& node, const std::size_t recursionDepth,
                                 const std::size_t addPerLevel, const std::size_t parentMax)
     -> std::size_t {
   std::size_t currentLength = node.identifier.length() + recursionDepth * addPerLevel;
@@ -318,7 +318,7 @@ auto max_node_identifier_length(const Internal::TimingNode& node, const std::siz
   return max;
 }
 
-auto export_node_json(const std::string& padding, const std::list<Internal::TimingNode>& nodeList,
+auto export_node_json(const std::string& padding, const std::list<internal::TimingNode>& nodeList,
                       std::ostream& stream) -> void {
   stream << "{" << std::endl;
   const std::string nodePadding = padding + "  ";
@@ -351,23 +351,23 @@ auto extract_timings(const std::string& identifier, const std::list<TimingNode>&
 }
 
 }  // namespace
-}  // namespace Internal
+}  // namespace internal
 
 // ======================
 // Timer
 // ======================
 auto Timer::process() const -> TimingResult {
-  std::list<Internal::TimingNode> results;
+  std::list<internal::TimingNode> results;
   std::stringstream warnings;
 
   try {
-    std::vector<Internal::TimeStampPair> timePairs;
+    std::vector<internal::TimeStampPair> timePairs;
     timePairs.reserve(timeStamps_.size() / 2);
 
     // create pairs of start / stop timings
     for (std::size_t i = 0; i < timeStamps_.size(); ++i) {
-      if (timeStamps_[i].type == Internal::TimeStampType::Start) {
-        Internal::TimeStampPair pair;
+      if (timeStamps_[i].type == internal::TimeStampType::Start) {
+        internal::TimeStampPair pair;
         pair.startIdx = i;
         pair.identifier = std::string(timeStamps_[i].identifierPtr);
         std::size_t numInnerMatchingIdentifiers = 0;
@@ -376,7 +376,7 @@ auto Timer::process() const -> TimingResult {
           // only consider matching identifiers
           if (std::string(timeStamps_[j].identifierPtr) ==
               std::string(timeStamps_[i].identifierPtr)) {
-            if (timeStamps_[j].type == Internal::TimeStampType::Stop &&
+            if (timeStamps_[j].type == internal::TimeStampType::Stop &&
                 numInnerMatchingIdentifiers == 0) {
               // Matching stop found
               std::chrono::duration<double> duration = timeStamps_[j].time - timeStamps_[i].time;
@@ -388,11 +388,11 @@ auto Timer::process() const -> TimingResult {
                          << std::endl;
               }
               break;
-            } else if (timeStamps_[j].type == Internal::TimeStampType::Stop &&
+            } else if (timeStamps_[j].type == internal::TimeStampType::Stop &&
                        numInnerMatchingIdentifiers > 0) {
               // inner stop with matching identifier
               --numInnerMatchingIdentifiers;
-            } else if (timeStamps_[j].type == Internal::TimeStampType::Start) {
+            } else if (timeStamps_[j].type == internal::TimeStampType::Start) {
               // inner start with matching identifier
               ++numInnerMatchingIdentifiers;
             }
@@ -429,7 +429,7 @@ auto Timer::process() const -> TimingResult {
           }
           if (!nodeFound) {
             // create new sub-node
-            Internal::TimingNode newNode;
+            internal::TimingNode newNode;
             newNode.identifier = pair.identifier;
             newNode.timings.push_back(pair.time);
             parentNode.subNodes.push_back(std::move(newNode));
@@ -454,7 +454,7 @@ auto Timer::process() const -> TimingResult {
 
       // New top level node
       if (pair.nodePtr == nullptr) {
-        Internal::TimingNode newNode;
+        internal::TimingNode newNode;
         newNode.identifier = pair.identifier;
         newNode.timings.push_back(pair.time);
         // newNode.parent = nullptr;
@@ -480,13 +480,13 @@ auto Timer::process() const -> TimingResult {
 auto TimingResult::json() const -> std::string {
   std::stringstream jsonStream;
   jsonStream << std::scientific;
-  Internal::export_node_json("", rootNodes_, jsonStream);
+  internal::export_node_json("", rootNodes_, jsonStream);
   return jsonStream.str();
 }
 
 auto TimingResult::get_timings(const std::string& identifier) const -> std::vector<double> {
   std::vector<double> timings;
-  Internal::extract_timings(identifier, rootNodes_, timings);
+  internal::extract_timings(identifier, rootNodes_, timings);
   return timings;
 }
 
@@ -499,14 +499,14 @@ auto TimingResult::print(std::vector<Stat> statistic) const -> std::string {
   // calculate space for printing identifiers
   std::size_t identifierSpace = 0;
   for (const auto& node : rootNodes_) {
-    const auto nodeMax = Internal::max_node_identifier_length(node, 0, 2, identifierSpace);
+    const auto nodeMax = internal::max_node_identifier_length(node, 0, 2, identifierSpace);
     if (nodeMax > identifierSpace) identifierSpace = nodeMax;
   }
   identifierSpace += 3;
 
   auto totalSpace = identifierSpace;
 
-  std::vector<Internal::Format> formats;
+  std::vector<internal::Format> formats;
   formats.reserve(statistic.size());
   for (const auto& stat : statistic) {
     formats.emplace_back(stat);
@@ -530,7 +530,7 @@ auto TimingResult::print(std::vector<Stat> statistic) const -> std::string {
 
   // print all timings
   for (const auto& node : rootNodes_) {
-    Internal::print_node(stream, formats, identifierSpace, std::string(), node, false, true, 0.0,
+    internal::print_node(stream, formats, identifierSpace, std::string(), node, false, true, 0.0,
                          0.0);
     stream << std::endl;
   }
