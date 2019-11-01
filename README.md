@@ -23,7 +23,7 @@ int main() {
   rt_graph::Timer timer;
 
   auto sleep = [&]() {
-    rt_graph::ScopedTiming scoped2("Sleep", timer);
+    rt_graph::ScopedTiming scoped("Sleep", timer);
     std::this_thread::sleep_for(std::chrono::duration<double>(0.1));
   };
 
