@@ -399,6 +399,7 @@ auto flatten_timings_nodes(std::list<TimingNode>& rootNodes, std::list<TimingNod
     } else {
       // identifier already in rootNodes -> only append timings
       it->timings.insert(it->timings.end(), n.timings.begin(), n.timings.end());
+      it->totalTime += n.totalTime;
     }
   }
 
